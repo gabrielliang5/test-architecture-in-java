@@ -81,10 +81,25 @@ public abstract class ApiTestEngine {
     protected Response getResponse(String path,Header header) {
         header = header==null?DEFAULTHEADER:header;
         path = path==null?"":path;
-        return RestAssured.given().filter(ALLURE_FILTER). // 👈 这一行是灵魂：自动抓取数据到报告
+        return RestAssured.given().filter(ALLURE_FILTER). // 这一行是灵魂：自动抓取数据到报告
                 header(header).
                 log().ifValidationFails(). // 只在失败时打印控制台日志，保持整洁
                 when().get(baseUrl + path).then().extract().response();
+    }
+
+    protected Response postResponse(String path, Object body, Header header) {
+        header = header == null ? DEFAULTHEADER : header;
+        path = path == null ? "" : path;
+
+        return RestAssured.given()
+                .filter(ALLURE_FILTER)
+                .header(header)
+                .body(body)                      // Record
+                .log().ifValidationFails()
+                .when()
+                .post(baseUrl + path)
+                .then()
+                .extract().response();
     }
 
 

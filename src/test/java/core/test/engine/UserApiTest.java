@@ -12,7 +12,7 @@ public class UserApiTest extends BaseTest {
     void testConnection() {
         // 从 BaseTest 获取动态地址
         String url = System.getProperty("test.mock.url");
-        log.info("正在连接云端容器地址: {}", url);
+        logger.info("正在连接云端容器地址: {}", url);
 
         // 验证请求
         given()
@@ -22,6 +22,6 @@ public class UserApiTest extends BaseTest {
         .then()
             .statusCode(200);
             
-        log.info("连通性测试通过,Java 代码成功访问了 Docker 容器。");
+        logger.info("连通性测试通过,Java 代码成功访问了 Docker 容器。");
     }
 }

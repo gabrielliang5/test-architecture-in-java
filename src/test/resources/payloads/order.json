@@ -1,0 +1,7 @@
+{
+  "orderId": "ORD-2025-001",
+  "amount": 99.99,
+  "status": "COMPLETED",
+  "currency": "CAD",
+  "description": "order"
+}
