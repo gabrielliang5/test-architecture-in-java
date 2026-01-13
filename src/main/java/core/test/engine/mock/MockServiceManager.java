@@ -18,11 +18,22 @@ public class MockServiceManager {
 
     private final static Logger logger = LoggerFactory.getLogger(MockServiceManager.class);
 
-    // 1. 定义 WireMock 容器，使用官方镜像
+    public static void stubWithId(String testId, String url, String responseBody) {
+        WireMock.stubFor(WireMock.get(WireMock.urlEqualTo(url))
+                .withHeader("X-Test-ID", WireMock.equalTo(testId)) // 关键：指纹识别
+                .willReturn(WireMock.aResponse()
+                        .withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody(responseBody)));
+    }
+
+    // 定义 WireMock 容器，使用官方镜像
     // 在 Codespaces 中，Testcontainers 会自动寻找 Docker Daemon 运行该容器
     private static final GenericContainer<?> WIREMOCK_CONTAINER =
-            new GenericContainer<>(DockerImageName.parse("wiremock/wiremock:3.3.1"))
-                    .withExposedPorts(8080); // WireMock 默认内部端口
+            new GenericContainer<>(DockerImageName.parse("wiremock/wiremock:3.3.1")).withExposedPorts(8080).// WireMock 默认内部端口
+
+        // 开启异步超时，这能让极少的内存在挂起数千请求时不崩溃
+        withCommand("--async-runtime=true", "--max-http-threads=1000");
 
     /**
      * 启动 Mock 服务器
@@ -32,7 +43,7 @@ public class MockServiceManager {
             logger.info("正在云端启动 Mock 容器...");
             WIREMOCK_CONTAINER.start();
 
-            // 2. 核心逻辑：配置 WireMock 客户端
+            // 核心逻辑：配置 WireMock 客户端
             // 因为 Codespaces 映射到宿主机的端口是随机的，必须动态获取
             WireMock.configureFor(
                     WIREMOCK_CONTAINER.getHost(),

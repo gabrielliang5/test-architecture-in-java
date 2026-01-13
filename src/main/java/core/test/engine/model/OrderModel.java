@@ -35,4 +35,27 @@ public record OrderModel(
     public static OrderModel of(String id, BigDecimal amt) {
         return new OrderModel(id, amt, "PENDING", "CAD", "Montreal Job Application Blitz");
     }
+
+    // 只修改状态和金额，
+    public OrderModel withStatusAndAmount(String newStatus, BigDecimal newAmount) {
+        // 返回一个新的 Record 实例，只替换 status 和 amount，其他字段用 this.xxx 保持原样
+        return new OrderModel(
+                this.orderId,
+                newAmount,    // 替换
+                newStatus,    // 替换
+                this.currency,
+                this.description
+        );
+    }
+
+    // 只修改描述
+    public OrderModel withDescription(String newDescription) {
+        return new OrderModel(
+                this.orderId,
+                this.amount,
+                this.status,
+                this.currency,
+                newDescription // 替换
+        );
+    }
 }

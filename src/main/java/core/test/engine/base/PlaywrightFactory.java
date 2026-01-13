@@ -52,35 +52,59 @@ public class PlaywrightFactory {
     public static void close(String testName) {
 
 
+
+        // 截图 ，在 Context 关闭前截取当前页面状态，并直接给 Allure
+        try {
+            byte[] screenshot = pageThreadLocal.get().screenshot(
+                    new Page.ScreenshotOptions().setFullPage(true)
+            );
+            io.qameta.allure.Allure.addAttachment("测试结束截图",
+                    new java.io.ByteArrayInputStream(screenshot));
+        } catch (Exception e) {
+            logger.error("截图失败: {}", e.getMessage());
+        }
+
+        //是否创建目录
         String dir = "target/traces/";
         Path path = Paths.get(dir);
-
-        // 1. 准备目录：尝试创建，失败则记录日志
+        // --- 目录创建逻辑 ---
         boolean canSave = true;
         if (Files.notExists(path)) {
             try {
                 Files.createDirectories(path);
             } catch (IOException e) {
                 logger.error("Could not create trace directory: {}", e.getMessage());
-                canSave = false; // 标记为不可存盘
+                canSave = false;
             }
         }
 
-        // 2. 执行存盘：只有在目录 OK 的情况下才执行
-        if (canSave) {
-            contextThreadLocal.get().tracing().stop(new Tracing.StopOptions()
-                    .setPath(Paths.get(dir + testName + ".zip")));
+        // --- 执行 Trace 存盘 ---
+        try {
+            if (canSave && contextThreadLocal.get() != null) {
+                Path tracePath = path.resolve(testName + ".zip");//保存在指定目录
+                contextThreadLocal.get().tracing().stop(new Tracing.StopOptions().setPath(tracePath));
+
+                // 把 Trace 喂给 Allure
+                io.qameta.allure.Allure.addAttachment(
+                        "操作轨迹回放 (Trace Viewer)",
+                        "application/zip",
+                        java.nio.file.Files.newInputStream(tracePath),
+                        ".zip"
+                );
+            }
+        } catch (Exception e) {
+            logger.error("Trace 保存或挂载失败: {}", e.getMessage());
+        } finally {
+            // --- 确保资源回收，无论前面是否报错 ---
+            if (browserThreadLocal.get() != null)
+                browserThreadLocal.get().close();
+            if (playwrightThreadLocal.get() != null)
+                playwrightThreadLocal.get().close();
+
+            playwrightThreadLocal.remove();
+            browserThreadLocal.remove();
+            contextThreadLocal.remove();
+            pageThreadLocal.remove();
         }
-        // 停止 Tracing 并保存到本地，
-
-
-        browserThreadLocal.get().close();
-        playwrightThreadLocal.get().close();
-
-        // 清理线程变量
-        playwrightThreadLocal.remove();
-        browserThreadLocal.remove();
-        contextThreadLocal.remove();
-        pageThreadLocal.remove();
     }
 }

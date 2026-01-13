@@ -1,12 +1,14 @@
 package core.test.engine.base;
 
+import com.microsoft.playwright.Page;
 import core.test.engine.mock.MockServiceManager;
+import io.qameta.allure.Allure;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
 //import org.testcontainers.containers.GenericContainer;
 //import org.testcontainers.utility.DockerImageName;
 
@@ -14,28 +16,46 @@ import org.slf4j.LoggerFactory;
 public abstract class BaseTest {
     protected static final Logger logger = LoggerFactory.getLogger(BaseTest.class);
 
+    protected static final boolean MOCK_ENABLED = false;
     @BeforeAll
     protected static void beforeAll() {
 
-        MockServiceManager.start();
-        logger.info("Mock 启动");
+        if (MOCK_ENABLED) {
+            MockServiceManager.start();
+            logger.info("Mock 启动");
+        } else {
+            logger.info("Mock 已禁用");
+        }
     }
 
-    @BeforeEach
-    protected void beforeEach() {
-        MockServiceManager.reset();
-        logger.info("Mock 重置");
-    }
+//    @BeforeEach
+//    protected void beforeEach() {
+//        MockServiceManager.reset();
+//        page = PlaywrightFactory.init("Firefox",true);
+//        logger.info("Mock 重置");
+//    }
+
+//    @AfterEach
+//    protected void afterEach(TestInfo testInfo) {
+//
+//        PlaywrightFactory.close(testInfo.getDisplayName());
+////        // 1. 抓取截图 (UI 层的证据)
+////        byte[] screenshot = page.screenshot(new Page.ScreenshotOptions().setFullPage(true));
+////        Allure.addAttachment("页面最终状态截图", new ByteArrayInputStream(screenshot));
+//
+//        // 2. 抓取前端控制台日志 (帮助排查 JS 报错)
+//        // 这个通常需要监听 page.onConsoleMessage，简单起见我们先做截图
+//    }
 
     @AfterAll
     protected static void afterAll() {
-        MockServiceManager.stop();
-        logger.info("Mock 关闭");
+        if (MOCK_ENABLED) {
+            MockServiceManager.stop();
+            logger.info("Mock 关闭");
+        }
     }
 
-    protected <T> T asModel(Response response, Class<T> clazz) {
-        return response.as(clazz);
-    }
+
 //    // 定义为 static，确保所有测试类共享同一个容器实例
 //    protected static final GenericContainer<?> WIREMOCK_CONTAINER;
 //
