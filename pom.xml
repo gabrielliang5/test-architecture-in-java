@@ -171,7 +171,6 @@
                 <artifactId>gatling-maven-plugin</artifactId>
                 <version>4.7.0</version>
                 <configuration>
-                    <simulationClass>core.test.engine.performance.OrderPerformanceSimulation</simulationClass>
                 </configuration>
             </plugin>
         </plugins>
