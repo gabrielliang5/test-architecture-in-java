@@ -30,10 +30,11 @@ public class MockServiceManager {
     // 定义 WireMock 容器，使用官方镜像
     // 在 Codespaces 中，Testcontainers 会自动寻找 Docker Daemon 运行该容器
     private static final GenericContainer<?> WIREMOCK_CONTAINER =
-            new GenericContainer<>(DockerImageName.parse("wiremock/wiremock:3.3.1")).withExposedPorts(8080).// WireMock 默认内部端口
+            new GenericContainer<>(DockerImageName.parse("wiremock/wiremock:3.3.1")).withExposedPorts(8080).
 
-        // 开启异步超时，这能让极少的内存在挂起数千请求时不崩溃
-        withCommand("--async-runtime=true", "--max-http-threads=1000");
+        waitingFor(org.testcontainers.containers.wait.strategy.Wait.forHttp("/__admin").forPort(8080))
+            .withStartupTimeout(java.time.Duration.ofSeconds(90));
+    // ✨  显式等待 HTTP 接口响应，并延长超时时间到 90 秒
 
     /**
      * 启动 Mock 服务器
